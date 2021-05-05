@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        label {
+            display: block;
+        }
+        input [type='radio'] {
+            display: block;
+        }
+        .list {
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <h1>パスワード自動生成ページ</h1>
+    <label>
+        パスワードの文字数を入力してください：
+        <input type="number" id="passwordLength" name='passwordLength' value='12'>
+    </label>
+    <label>
+        パスワードに使う文字の種類を選択してください：
+        <label><input type="checkbox" id="capitalLettersChecked" name="word_type" data-word="ABCDEFGHIJKLMNOPQRSTUVWXYZ" value="A" checked>半角英大文字</label>
+        <label><input type="checkbox" id="smallLettersChecked" name="word_type" data-word="abcdefghijklmnopqrstuvwxyz" value="a" checked>半角英小文字</label>
+        <label><input type="checkbox" id="numbersChecked" name="word_type" data-word="0123456789" value="0" checked>半角数字</label>
+        <label><input type="checkbox" id="symbolsChecked" name="word_type" data-word="/*+.,!?#$%&~|^@;:()[]{}" value="+">記号</label>
+    </label>
+    <label>
+        以下の文字からパスワードを生成します。
+    </label>
+    <label>
+        <textarea name="" id="list" class="list" readonly></textarea>
+    </label>
+    <!-- <p>※似たような文字はパスワードから省いてあります。似た文字リスト：0oO, Il1, 6b, q9</p> -->
+    <button type="button" id='createButton'>パスワードを生成</button>
+
+    <p id="passwordList">
+        結果
+        <!-- ここにパスワードの生成結果のフォームが作られる -->
+    </p>
+
+</body>
+<script type="text/javascript">
+    const capitalLetters = document.getElementById('capitalLettersChecked');
+    const smallLetters = document.getElementById('smallLettersChecked');
+    const numbers = document.getElementById('numbersChecked');
+    const symbols = document.getElementById('symbolsChecked');
+    const list = document.getElementById('list');
+    const createButton = document.getElementById('createButton');
+    const passwordList = document.getElementById('passwordList');
+    const numberOfPasswords = 10;
+
+    // パスワードの生成結果を表示するフォームを生成する関数
+    const makeTextForm = () => {
+        for (let index = 0; index < numberOfPasswords; index++) {
+            const element = document.createElement('label');
+            const elementChildText = document.createElement('input');
+            elementChildText.type = 'text';
+            elementChildText.id = 'passwords[' + index + ']';
+            const elementChildButton = document.createElement('button');
+            elementChildButton.id = 'copyButton[' + index + ']';
+            elementChildButton.textContent = 'コピー';
+            element.appendChild(elementChildText);
+            element.appendChild(elementChildButton);
+            console.log(element);
+            passwordList.appendChild(element);
+            
+        }
+    }
+
+    // チェックリストにチェックされているか判定する関数、updateListで使う
+    const isChecked = (element) => {
+        if (element.checked) {
+            return element.dataset.word;
+        } else {
+            return "";
+        }
+    }
+    
+    // 文字のリストを更新する関数
+    const updateList = () => {
+        let wordsList = '';
+        wordsList += isChecked(capitalLetters);
+        wordsList += isChecked(smallLetters);
+        wordsList += isChecked(numbers);
+        wordsList += isChecked(symbols);
+        list.value = wordsList;
+    }
+
+    // パスワードを生成し、結果の欄に表示する関数
+    const makePasswords = () => {
+        let wordsList = list.value;
+        const wordsListSplit = wordsList.split('');
+        const passwordLength = document.getElementById('passwordLength');
+        for (let index = 0; index < numberOfPasswords; index++) {
+            const element = document.getElementById('passwords[' + index + ']');
+            element.value = getRandomLetters(passwordLength.value, wordsListSplit);
+            const copyButton = document.getElementById('copyButton[' + index + ']');
+            copyButton.addEventListener('click', () => {
+                //コピーボタンが押されたとき、パスワードをクリップボードに保存する
+                element.select();
+                document.execCommand('Copy');
+            });
+            // copyButton.addEventListener('click', copyToClipboard(element)); だと正しく動かない
+        }
+    }
+
+    // パスワードに使う文字列を生成する関数
+    const getRandomLetters = (passwordLength, wordsListSplit) => {
+        let password = '';
+        for (let index = 0; index < passwordLength; index++) {
+            const letterIndex = Math.floor(Math.random() * wordsListSplit.length);
+            password += wordsListSplit[letterIndex];
+        }
+        return password;
+    }
+
+    // ページを開いたとき（＋更新したとき）、文字のリストを表示し、パスワードを生成する
+    window.addEventListener('load', makeTextForm);
+    window.addEventListener('load', updateList);
+    window.addEventListener('load', makePasswords);
+
+    // パスワードを生成ボタンを押すと、パスワードが生成される
+    createButton.addEventListener('click', makePasswords);
+
+    // チェックリストが更新されたとき、文字のリストを更新する
+    capitalLetters.addEventListener('change', updateList);
+    smallLetters.addEventListener('change', updateList);
+    numbers.addEventListener('change', updateList);
+    symbols.addEventListener('change', updateList);
+
+</script>
+</html>
